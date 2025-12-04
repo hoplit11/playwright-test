@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { loginToPACS } from './utils/login';
+import { loginAndGetCookie } from '../utils/loginforCookies.ts';
 
 test.describe('API – Orthanc PACS (autenticado vía Keycloak)', () => {
 
   test('GET /pacs/studies debe responder 200 con cookies válidas', async ({ page }) => {
 
     // 1. Login ONE TIME via UI
-    await loginToPACS(page, 'viewer', 'viewer');
+    await loginAndGetCookie(page, 'viewer', 'viewer');
 
     // 2. Obtener API client ya autenticado
     const api = page.context().request;

@@ -19,7 +19,11 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   
   /* Reportes HTML en carpeta playwright-report */
-  reporter: [['html', { open: 'never', outputFolder: 'playwright-report' }]],  
+  reporter: [['html', {
+     open: 'never',
+     outputFolder: 'playwright-report',
+     inlineAssets: false       // 👈 Esto fuerza carpetas data/asset
+     }]],  
   
   // Settings aplicables a todos los tests
   use: {
