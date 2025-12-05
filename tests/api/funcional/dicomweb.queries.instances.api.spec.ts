@@ -27,7 +27,6 @@ test.describe('DICOMWeb - QIDO-RS - Instances por serie', () => {
       extraHTTPHeaders: { Cookie: cookieHeader }
     });
 
-
     // 4️⃣ OBTENER ESTUDIOS → QIDO-RS (Query based on ID for DICOM Objects-Retrieve Service) → 
     const resStudies = await api.get('/pacs/studies');
     expect(resStudies.status(), 'El endpoint /pacs/studies debe devolver 200').toBe(200);

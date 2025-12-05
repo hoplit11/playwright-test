@@ -35,9 +35,7 @@ test.describe('DICOMWeb - WADO-RS Retrieve con Validación', () => {
     const series = await seriesRes.json();
     SeriesUID = series[0]['0020000E']?.Value?.[0];
 
-    const instancesRes = await apiContext.get(
-      `/pacs/studies/${StudyUID}/series/${SeriesUID}/instances`
-    );
+    const instancesRes = await apiContext.get(`/pacs/studies/${StudyUID}/series/${SeriesUID}/instances`);
     expect(instancesRes.ok()).toBeTruthy();
     const instances = await instancesRes.json();
     

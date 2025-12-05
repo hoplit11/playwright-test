@@ -27,20 +27,63 @@ test.describe('DICOMWeb - Retrieve Study completo (multipart → DICOM)', () => 
     StudyUID = studies[0]['0020000D'].Value[0]; // Tomar el Study Instance UID del primer estudio
   });
 
-  console.log(`Usando StudyUID: ${StudyUID} para pruebas de Retrieve Study`);
-
   test('Retrieve Study (WADO-RS) y extracción parcial de DICOM', async () => {
     // Aumentar timeout SOLO en esta prueba
-    //test.setTimeout(120000); 
+    test.setTimeout(240000); 
 
-    const res = await api.get(`/pacs/studies/${StudyUID}`); // WADO-RS Retrieve Study
-    expect(res.status(), 'El endpoint /pacs/studies debe devolver 200').toBe(200);
+    const res = await api.get(`/pacs/studies/${StudyUID}`);
+
+    expect(res.status()).toBe(200);
     expect(res.headers()['content-type']).toContain('multipart/related');
 
+    const raw = await res.body(); // buffer del multipart
+
+    // Extraer boundary
+    const ct = res.headers()['content-type'];
+    const boundaryMatch = ct.match(/boundary="?([^=";]+)"?/);
+    expect(boundaryMatch).not.toBeNull();
+
+    const boundary = boundaryMatch[1];
+    const delimiter = `--${boundary}`;
+
+    // Convertir multipart a texto (inevitable pero controlado)
+    const text = raw.toString('binary');
+
+    const parts = text.split(delimiter).filter(p => p.includes('Content-Type'));
+    expect(parts.length).toBeGreaterThan(0);
+
+    // Directorio de evidencia
+    const evidenceDir = path.join(process.cwd(), 'evidence', 'api', 'retrieve', 'study');
+    fs.mkdirSync(evidenceDir, { recursive: true });
+
+    let dicomCount = 0;
+
+    for (const part of parts) {
+      if (dicomCount >= MAX_FILES) break;
+      if (!part.includes('application/dicom')) continue;
+
+      const dicomRaw = part.split('\r\n\r\n')[1];
+      if (!dicomRaw) continue;
+
+      const dicomBuffer = Buffer.from(dicomRaw, 'binary');
+
+      // Validación mínima
+      expect(dicomBuffer.indexOf('DICM')).toBeGreaterThan(-1);
+
+      dicomCount++;
+      fs.writeFileSync(
+        path.join(evidenceDir, `study-${StudyUID}-img${dicomCount}.dcm`),
+        dicomBuffer
+      );
+    }
+
+    expect(dicomCount).toBeGreaterThan(0);
+
+    test.info().attach('Resumen DICOM extraídos del estudio', {
+      body: Buffer.from(`Se extrajeron ${dicomCount} archivos DICOM del StudyUID ${StudyUID}.`),
+      contentType: 'text/plain'
+    });
   });
-
-
-
 });
 
 

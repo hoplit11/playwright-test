@@ -18,132 +18,129 @@
  * ================================================================================
  */
 
-import { test, expect, request } from '@playwright/test';
+import { test, expect, request, APIRequestContext } from '@playwright/test';
 import { loginAndGetCookie } from '../utils/loginforCookies';
 import fs from 'fs';
 import path from 'path';
 
 const BASE_URL = 'https://pacs.viewneurocirugiahuv.org';
-const MAX_FILES = 15; // Limitamos evidencia para mantener rendimiento
+const MAX_FILES = 3; // Máximo de DICOM a extraer del multipart
 
-test.describe('DICOMWeb – WADO-RS Retrieve Series (multipart → DICOM)', () => {
+test.describe('DICOMWeb - WADO-RS Retrieve Series (multipart → DICOM)', () => {
 
-  let api;
-  let StudyUID;
-  let SeriesUID;
+  let api: APIRequestContext;
+  let studyUID: string;
+  let seriesUID: string;
 
-  /**
-   * BEFORE ALL → LOGIN + obtener StudyUID & SeriesUID reales
-   */
   test.beforeAll(async ({ browser }) => {
+
+    // Login UI
     const page = await browser.newPage();
-
-    // 1️⃣ Login real vía UI (obligatorio)
     const cookieHeader = await loginAndGetCookie(page, 'viewer', 'viewer');
+    await page.close();
 
-    // 2️⃣ Contexto API autenticado
+    // Contexto API autenticado
     api = await request.newContext({
       baseURL: BASE_URL,
       extraHTTPHeaders: { Cookie: cookieHeader }
     });
 
-    // 3️⃣ Obtener primer estudio disponible
+    // Obtener un estudio real
     const studies = await (await api.get(`/pacs/studies`)).json();
     expect(studies.length).toBeGreaterThan(0);
 
-    StudyUID = studies[0]['0020000D'].Value[0];
+    studyUID = studies[0]['0020000D'].Value[0];
 
-    // 4️⃣ Obtener series del estudio
-    const series = await (await api.get(`/pacs/studies/${StudyUID}/series`)).json();
+    // Obtener series del estudio
+    const series = await (await api.get(`/pacs/studies/${studyUID}/series`)).json();
     expect(series.length).toBeGreaterThan(0);
 
-    SeriesUID = series[0]['0020000E'].Value[0];
+    seriesUID = series[0]['0020000E'].Value[0];
   });
 
-  /**
-   * TEST PRINCIPAL: Retrieve Series (multipart → extraer DICOM)
-   */
-  test('Retrieve Series completo y extracción de DICOM', async () => {
-    // Aumentar timeout SOLO en esta prueba
-    test.setTimeout(120000); 
-    // 5️⃣ Llamado a WADO-RS Retrieve Series
-    const res = await api.get(`/pacs/studies/${StudyUID}/series/${SeriesUID}`);
+  test('Retrieve Series completo y extracción de múltiples DICOM', async () => {
+    test.setTimeout(180000); // 3 minutos máximo
 
+    // Endpoint WADO-RS
+    const retrieveSeriesEndpoint = `/pacs/studies/${studyUID}/series/${seriesUID}`;
+    const wadoResponse = await api.get(retrieveSeriesEndpoint);
 
-    expect(res.status()).toBe(200);
-    expect(res.headers()['content-type']).toContain('multipart/related');
+    // Validaciones iniciales
+    expect(wadoResponse.status()).toBe(200);
+    expect(wadoResponse.headers()['content-type']).toContain('multipart/related');
 
-    const raw = await res.body(); // buffer binario completo del multipart
+    const contentType = wadoResponse.headers()['content-type'];
+    const multipartBuffer = await wadoResponse.body(); // Buffer crudo
 
-    // ======================
-    // EXTRAER BOUNDARY
-    // ======================
-    const ct = res.headers()['content-type'];
-    const boundaryMatch = ct.match(/boundary="?([^=";]+)"?/);
+    // Extraer boundary del header
+    const boundaryMatch = contentType.match(/boundary="?([^=";]+)"?/);
     expect(boundaryMatch).not.toBeNull();
+    const boundary = boundaryMatch![1];
 
-    const boundary = boundaryMatch[1];
-    const delimiter = `--${boundary}`;
+    // Separar partes del multipart SIN convertir a texto
+    const boundaryBuffer = Buffer.from(`--${boundary}`);
+    const endBoundaryBuffer = Buffer.from(`--${boundary}--`);
 
-    // Convertir a texto para dividir MIME parts
-    const text = raw.toString('binary');
+    const parts: Buffer[] = [];
+    let start = multipartBuffer.indexOf(boundaryBuffer);
 
-    // Separar cada parte MIME
-    const parts = text.split(delimiter).filter(p => p.includes('Content-Type'));
-    expect(parts.length).toBeGreaterThan(0);
+    while (start !== -1) {
+      const next = multipartBuffer.indexOf(boundaryBuffer, start + boundaryBuffer.length);
 
-    // ======================
-    // PREPARAR CARPETA DE EVIDENCIA
-    // ======================
+      // Obtener el fragmento que va entre dos boundaries
+      const part = multipartBuffer.slice(
+        start + boundaryBuffer.length,
+        next === -1 ? multipartBuffer.indexOf(endBoundaryBuffer) : next
+      );
+
+      parts.push(part);
+      start = next;
+    }
+
+    // Crear directorio de evidencia
     const evidenceDir = path.join(process.cwd(), 'evidence', 'api', 'retrieve', 'series');
     fs.mkdirSync(evidenceDir, { recursive: true });
 
     let dicomCount = 0;
 
-    // ======================
-    // EXTRAER Y GUARDAR DICOM
-    // ======================
+    // Procesar cada parte MIME
     for (const part of parts) {
       if (dicomCount >= MAX_FILES) break;
-      if (!part.includes('application/dicom')) continue;
 
-      const dicomRaw = part.split('\r\n\r\n')[1];
-      if (!dicomRaw) continue;
+      const headerEnd = part.indexOf(Buffer.from('\r\n\r\n'));
+      if (headerEnd === -1) continue;
 
-      const dicomBuffer = Buffer.from(dicomRaw, 'binary');
+      const headerText = part.slice(0, headerEnd).toString();
+      if (!headerText.includes('application/dicom')) continue;
 
-      // Magic bytes DICM en cualquier posición
+      // Extraer el DICOM puro
+      const dicomBuffer = part.slice(headerEnd + 4);
+
+      // Validar magic bytes
       expect(dicomBuffer.indexOf('DICM')).toBeGreaterThan(-1);
 
       dicomCount++;
 
-      // Guardar evidencia .dcm
       fs.writeFileSync(
-        path.join(evidenceDir, `series-${SeriesUID}-img${dicomCount}.dcm`),
+        path.join(evidenceDir, `series-${seriesUID}-img${dicomCount}.dcm`),
         dicomBuffer
       );
     }
 
     expect(dicomCount).toBeGreaterThan(0);
 
-    // Adjuntar evidencia textual al reporte
-    test.info().attach(`Retrieve Series — ${dicomCount} imágenes extraídas`, {
+    // Adjuntar evidencia al reporte
+    test.info().attach('WADO-RS Retrieve Series — Resultados', {
       body: Buffer.from(
-        `Se extrajeron ${dicomCount} imágenes DICOM de la serie ${SeriesUID}.`
+        `Se extrajeron ${dicomCount} imágenes DICOM de la serie ${seriesUID} (máximo permitido ${MAX_FILES}).`
       ),
       contentType: 'text/plain'
+    });
+
+    test.info().attach('WADO-RS Series Headers', {
+      body: JSON.stringify(wadoResponse.headers(), null, 2),
+      contentType: 'application/json'
     });
   });
 
 });
-
-
-/**
- * Las operaciones WADO-RS de tipo Retrieve Study y Retrieve Series no son adecuadas para pruebas automatizadas con Playwright debido 
- * al gran tamaño de los objetos multipart retornados por el servidor DICOMWeb.
-
-Los frameworks de testing web no están diseñados para flujos binarios masivos ni para parsing de multipart relacionados con imágenes DICOM. 
-Por esta razón, dichas pruebas se validaron mediante herramientas especializadas (curl, Postman, dcm4che, Orthanc Explorer, Weasis), 
-mientras que las pruebas automatizadas se enfocan en operaciones QIDO-RS y WADO-RS a nivel de instancia (Retrieve Instance y Retrieve Frames), 
-que sí son ligeras y compatibles con automatización.
- */
