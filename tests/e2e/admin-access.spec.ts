@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { loginToPACS } from '../utils/authHelper';
-import { OrthancAdminPage } from '../pages/OrthancAdminPage';
+import { loginToPACS } from './utils/authHelper';
+import { OrthancAdminPage } from './pages/OrthancAdminPage';
 
 test('Pacsadmin puede acceder a administración', async ({ page }) => {
   await loginToPACS(page, 'pacsadmin', 'pacsadmin');

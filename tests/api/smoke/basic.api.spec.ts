@@ -1,3 +1,8 @@
+// basic.api.spec.ts
+/**
+ * Pruebas básicas de la API DICOMWeb del PACS Orthanc.
+*/
+
 import { test, expect } from '@playwright/test';
 import { loginAndGetCookie } from '../utils/loginforCookies.ts';
 

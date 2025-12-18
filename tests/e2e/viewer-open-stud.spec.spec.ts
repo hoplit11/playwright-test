@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { loginToPACS } from '../utils/authHelper';
-import { selectors } from '../utils/selectors';
+import { loginToPACS } from './utils/authHelper';
+import { selectors } from './utils/selectors';
 
 test.describe('Visualización de estudios en OHIF Viewer', () => {
 

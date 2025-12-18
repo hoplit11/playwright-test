@@ -39,7 +39,8 @@ import { loginAndGetCookie } from '../utils/loginforCookies';
 
 const BASE_URL = 'https://pacs.viewneurocirugiahuv.org';
 
-test.describe('API - Auth y Disponibilidad', () => {
+// 
+test.describe('API - Auth y Disponibilidad', () => { 
 
   test('Keycloak está disponible (OpenID config)', async ({ request }) => {
     const res = await request.get(

@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { test, expect } from '@playwright/test';
-import { loginToPACS } from '../utils/authHelper';
-import { selectors } from '../utils/selectors';
+import { loginToPACS } from './utils/authHelper';
+import { selectors } from './utils/selectors';
 
 test('El usuario puede abrir un estudio y visualizar imágenes DICOM en modos basico', async ({ page }, testInfo) => {
 

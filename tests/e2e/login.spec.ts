@@ -1,7 +1,7 @@
 // tests/e2e/login.spec.ts
 import { test, expect } from '@playwright/test';
-import { loginToPACS } from '../utils/authHelper';
-import { selectors } from '../utils/selectors';
+import { loginToPACS } from './utils/authHelper';
+import { selectors } from './utils/selectors';
 
 test.describe('Login al sistema PACS', () => { //
   test('El usuario puede iniciar sesión y ver la lista de estudios', async ({ page }) => {
