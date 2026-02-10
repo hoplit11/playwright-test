@@ -6,7 +6,7 @@
 import { test, expect } from '@playwright/test';
 import { loginAndGetCookie } from '../utils/loginforCookies.ts';
 
-test.describe('API – Orthanc PACS (autenticado vía Keycloak)', () => {
+test.describe('API - Orthanc PACS (autenticado vía Keycloak)', () => {
 
   test('GET /pacs/studies debe responder 200 con cookies válidas', async ({ page }) => {
 

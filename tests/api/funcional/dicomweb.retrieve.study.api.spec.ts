@@ -15,6 +15,12 @@ const BASE_URL = 'https://pacs.viewneurocirugiahuv.org';
 const MAX_FILES = 20;   // Máximo de DICOM a extraer (evita timeout)
 
 test.describe('DICOMWeb - Retrieve Study completo (multipart → DICOM)', () => {
+
+    test.skip(
+    !process.env.RUN_FULL_STUDY,
+    'Prueba pesada: descarga completa del estudio'
+  );
+
   let api; // Contexto API autenticado
   let StudyUID; // UID del estudio a recuperar
 
@@ -29,7 +35,8 @@ test.describe('DICOMWeb - Retrieve Study completo (multipart → DICOM)', () => 
 
   console.log(`Usando StudyUID: ${StudyUID} para pruebas de Retrieve Study`);
 
-  test('Retrieve Study (WADO-RS) y extracción parcial de DICOM', async () => {
+  test('Retrieve Study (WADO-RS) y extracción parcial de DICOM', {tag: ['@slow', '@wado', '@retrieve-study']}, async () => { // Etiquetas para clasificación
+    test.slow(); // Marcar como prueba lenta
     // Aumentar timeout SOLO en esta prueba
     //test.setTimeout(120000); 
 
@@ -44,4 +51,42 @@ test.describe('DICOMWeb - Retrieve Study completo (multipart → DICOM)', () => 
 });
 
 
-/**“Debido a las características propias del protocolo DICOMWeb WADO-RS, el endpoint Retrieve Study entrega un objeto multipart que puede superar los cientos de megabytes. Por esta razón, y siguiendo buenas prácticas en pruebas para PACS, esta operación se validó manualmente mediante herramientas de inspección DICOM (curl, Postman, Weasis) en lugar de automatizarse con Playwright, que no está optimizado para descargas masivas ni para decodificación de MIME multipart de gran tamaño.” */
+/**“Debido a las características propias del protocolo DICOMWeb WADO-RS, el endpoint Retrieve Study entrega 
+ * un objeto multipart que puede superar los cientos de megabytes. 
+ * Por esta razón, y siguiendo buenas prácticas en pruebas para PACS, esta operación se validó manualmente 
+ * mediante herramientas de inspección DICOM (curl, Postman, Weasis) en lugar de automatizarse con Playwright, 
+ * que no está optimizado para descargas masivas ni para decodificación de MIME multipart de gran tamaño.” */
+
+
+/**
+ * ================================================================================
+ * EJECUCIÓN DE ESTA PRUEBA (IMPORTANTE)
+ * ================================================================================
+ *
+ * Esta prueba NO se ejecuta por defecto debido a que realiza una descarga completa
+ * de un estudio DICOM vía WADO-RS, lo cual puede implicar cientos de megabytes y
+ * tiempos de ejecución elevados.
+ *
+ * ▶ Ejecución normal (modo diario / CI rápido):
+ *   npx playwright test
+ *   → Esta prueba se omite automáticamente.
+ *
+ * ▶ Ejecución manual (cuando se requiera validar descarga completa):
+ *
+ *   PowerShell (Windows):
+ *     $env:RUN_FULL_STUDY="true"
+ *     npx playwright test --grep @retrieve-study
+ *
+ *   Bash / Linux / WSL:
+ *     RUN_FULL_STUDY=true npx playwright test --grep @retrieve-study
+ *
+ * ▶ Etiquetas asociadas:
+ *   - @slow            → Prueba pesada / alto consumo
+ *   - @wado            → Protocolo DICOMWeb WADO-RS
+ *   - @retrieve-study  → Descarga completa de estudio
+ *
+ * NOTA:
+ * Esta prueba está pensada para ejecución manual, validaciones puntuales o
+ * pipelines nocturnos. No debe formar parte del set funcional diario.
+ * ================================================================================
+ */

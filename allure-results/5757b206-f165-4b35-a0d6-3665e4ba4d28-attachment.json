@@ -1,0 +1,20 @@
+{
+  "date": "Fri, 06 Feb 2026 18:37:33 GMT",
+  "content-type": "application/dicom+json",
+  "content-length": "486",
+  "connection": "keep-alive",
+  "access-control-allow-headers": "Authorization, Origin, X-Requested-With, Content-Type, Accept",
+  "access-control-allow-methods": "GET, POST, OPTIONS",
+  "access-control-allow-origin": "*",
+  "cache-control": "max-age=0, private",
+  "content-encoding": "gzip",
+  "expires": "Fri, 06 Feb 2026 18:37:32 GMT",
+  "server": "cloudflare",
+  "x-content-type-options": "nosniff",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "cf-cache-status": "DYNAMIC",
+  "vary": "accept-encoding",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=j7L9cXwz8ZJhpRa5IkvxmwdNbNlTh0wYY0aOhFLT0uprPWn4gjcts06YYV%2BBgWE2l8N9ZuB0RkgnR%2Bil%2FvT%2Fnk%2FVEG1oLj2LNQJHcVjzHaPneMMVGSb9t1adlWA%3D\"}]}",
+  "cf-ray": "9c9cc2678ebd204d-MIA",
+  "alt-svc": "h3=\":443\"; ma=86400"
+}

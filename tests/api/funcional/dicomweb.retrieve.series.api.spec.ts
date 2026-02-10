@@ -27,6 +27,10 @@ const BASE_URL = 'https://pacs.viewneurocirugiahuv.org';
 const MAX_FILES = 3; // Máximo de DICOM a extraer del multipart
 
 test.describe('DICOMWeb - WADO-RS Retrieve Series (multipart → DICOM)', () => {
+    test.skip(
+    !process.env.RUN_RETRIEVE_SERIES,
+    'Prueba de consumo medio: Retrieve Series no se ejecuta por defecto'
+  );
 
   let api: APIRequestContext;
   let studyUID: string;
@@ -58,7 +62,10 @@ test.describe('DICOMWeb - WADO-RS Retrieve Series (multipart → DICOM)', () => 
     seriesUID = series[0]['0020000E'].Value[0];
   });
 
-  test('Retrieve Series completo y extracción de múltiples DICOM', async () => {
+  test('Retrieve Series completo y extracción de múltiples DICOM', {tag: ['@slow', '@wado', '@retrieve-series']}, async () => {
+    
+    test.slow(); // Marca la prueba como lenta
+    
     test.setTimeout(180000); // 3 minutos máximo
 
     // Endpoint WADO-RS
@@ -144,3 +151,33 @@ test.describe('DICOMWeb - WADO-RS Retrieve Series (multipart → DICOM)', () => 
   });
 
 });
+
+
+
+/**
+ * ================================================================================
+ * EJECUCIÓN DE ESTA PRUEBA
+ * ================================================================================
+ *
+ * Esta prueba NO se ejecuta por defecto al correr:
+ *   npx playwright test
+ *
+ * ▶ Para ejecutarla manualmente:
+ *
+ *   PowerShell (Windows):
+ *     $env:RUN_RETRIEVE_SERIES="true"
+ *     npx playwright test --grep @retrieve-series
+ *
+ *   Bash / Linux / WSL:
+ *     RUN_RETRIEVE_SERIES=true npx playwright test --grep @retrieve-series
+ *
+ * ▶ Etiquetas asociadas:
+ *   - @slow
+ *   - @wado
+ *   - @retrieve-series
+ *
+ * NOTA:
+ * Prueba de consumo medio (multipart, I/O, escritura de archivos).
+ * Ejecutar solo cuando se requiera validación funcional explícita.
+ * ================================================================================
+ */

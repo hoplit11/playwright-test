@@ -40,16 +40,11 @@ export default defineConfig({
   workers: process.env.CI ? 1 : 4,  /* 1 instancia del navegador por worker, 4 en local (antes era undefined)
   
   /* Reportes HTML en carpeta playwright-report */
-  // Reporte HTML interactivo (principal)
-  reporter: [['html', { 
-     open: 'never', // No abrir automáticamente (usar npx playwright show-report)
-     outputFolder: 'playwright-report',
-     inlineAssets: false       // Separar assets en carpetas
-     }],
-    // Reporte de lista en consola (útil para CI/local)
-    ['list', { 
-      printSteps: false            // No imprimir cada paso (muy verboso)
-    }],
+  // Reporte HTML interactivo (principal), consola y Allure
+  reporter: [ 
+    ['html', {open: 'never', outputFolder: 'playwright-report', inlineAssets: false}],// Reporter de Playwright. No abrir automáticamente (usar npx playwright show-report),Separar assets en carpetas
+    ['list', {printSteps: false}],// Reporte de lista en consola (útil para CI/local)// Reporter de lista. No imprimir cada paso (muy verboso)
+    ['allure-playwright', { outputFolder: 'allure-results' }]// Reporte Allure (para visualizar mejor y futura integración con Jenkins u otros)
     ],  
   
   // Settings aplicables a todos los tests
@@ -76,7 +71,7 @@ export default defineConfig({
     },
     /** 2e2 proyectos(UI) */
     { name: 'chromium-e2e', testMatch: /tests\/e2e\/.*\.spec\.ts/, dependencies: ['smoke-tests'], use: { ...devices['Desktop Chrome'] },},
-    { name: 'firefox-e2e', testMatch: /tests\/e2e\/.*\.spec\.ts/, dependencies: ['smoke-tests'], use: { ...devices['Desktop Firefox'] },},
+    //{ name: 'firefox-e2e', testMatch: /tests\/e2e\/.*\.spec\.ts/, dependencies: ['smoke-tests'], use: { ...devices['Desktop Firefox'] },},
     //{ name: 'edge-e2e', testMatch: /tests\/e2e\/.*\.spec\.ts/, dependencies: ['smoke-tests'], use: { ...devices['Desktop Edge'] },},
     //{ name: 'webkit-e2e',testMatch: /tests\/e2e\/.*\.spec\.ts/, use: { ...devices['Desktop Safari'] },},
 

@@ -1,0 +1,18 @@
+{
+  "date": "Fri, 19 Dec 2025 03:31:50 GMT",
+  "content-type": "multipart/related; type=\"application/dicom\"; boundary=cb4091e5-196e-4277-a1b8-55cbf64bac10-8ac68da0-a001-482c-b5c7-f7a539f2e",
+  "content-length": "525834",
+  "connection": "keep-alive",
+  "access-control-allow-headers": "Authorization, Origin, X-Requested-With, Content-Type, Accept",
+  "access-control-allow-methods": "GET, POST, OPTIONS",
+  "access-control-allow-origin": "*",
+  "cache-control": "max-age=0, private",
+  "expires": "Fri, 19 Dec 2025 03:31:49 GMT",
+  "server": "cloudflare",
+  "x-content-type-options": "nosniff",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "cf-cache-status": "DYNAMIC",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=NMiLa6EObTXhbh7Ffn0UuEGFBqh98aBOTfTIalVDgZdm1a2Ke0NK4eG3ixW53kBmrt%2BwA0Dpz8RmbrDRlezlGG4FrffAMlILi2kZOE5nvpVKVmFGLZxdvBQ9d0Y%3D\"}]}",
+  "cf-ray": "9b03d449e926147d-MIA",
+  "alt-svc": "h3=\":443\"; ma=86400"
+}

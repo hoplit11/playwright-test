@@ -1,0 +1,9 @@
+
+🔍 Descargando instancia: 1.2.826.0.1.3680043.8.498.11609002700895496024751924515481888550
+📦 Buffer descargado: 525836 bytes
+✂️ DICOM extraído: 525606 bytes
+🔐 Magic bytes: "DICM"
+✅ DICOM parseado - Modality: MR
+💾 Guardado: C:\Users\Mauricio\QA\Playwright\evidence\api\retrieve\validation\instance-1.2.826.0.1.3680043.8.498.11609002700895496024751924515481888550.dcm
+✅ Test completado
+
